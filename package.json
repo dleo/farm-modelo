@@ -1,0 +1,29 @@
+{
+  "name": "farm-model",
+  "version": "1.0.0",
+  "description": "Micro service for model",
+  "main": "index.js",
+  "scripts": {
+    "prestart": "tsc",
+    "start": "node dist/index.js"
+  },
+  "author": "David Lopez <dleo.lopez@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "boom": "^7.3.0",
+    "del": "^3.0.0",
+    "hapi": "^17.8.1",
+    "lokijs": "^1.5.5",
+    "ncp": "^2.0.0",
+    "unzip": "^0.1.11",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/boom": "^7.2.1",
+    "@types/del": "^3.0.1",
+    "@types/hapi": "^17.8.2",
+    "@types/lokijs": "^1.5.2",
+    "@types/uuid": "^3.4.4",
+    "typescript": "^3.2.2"
+  }
+}
