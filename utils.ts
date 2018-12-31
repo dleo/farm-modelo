@@ -3,7 +3,8 @@ import * as fs from 'fs';
 import * as uuid from 'uuid';
 import * as unzip from 'unzip';
 import * as child from 'child_process';
-import * as ncp from 'ncp'
+import * as ncp from 'ncp';
+import {Api} from "./src/classes/api";
 
 const zipFilter = function (fileName: string) {
     // zip file only
@@ -34,12 +35,15 @@ const _fileHandler = function (file: any, options: FileUploaderOption) {
     const orignalname = file.hapi.filename;
     const filename = uuid.v1();
     const path = `${options.dest}${filename}`;
-    const fileStream = fs.createWriteStream(path);
-    const fileRead = fs.createReadStream(path)
-        .pipe(unzip.Extract({ path: `${options.dest}` })    .on('finish', function () {
-            commandCaller(options);
-        }))
-    ;
+    var fileStream = fs.createWriteStream(path);
+    // After write upload file, we must unzip
+    fileStream.on('finish', () => {
+        fs.createReadStream(path)
+            .pipe(unzip.Extract({path: `${options.dest}`}).on('finish', function () {
+                commandCaller(options);
+            }))
+        ;
+    });
 
     return new Promise((resolve, reject) => {
         file.on('error', function (err) {
@@ -77,12 +81,29 @@ const commandCaller = function (fileOptions: FileUploaderOption) {
             return console.error(err);
         }
         child.exec('ls -l', function (error, stdout, stderr) {
-            console.log(stdout);
+            _readFileToJson();
             if (error) {
-                console.error(error);
+                return console.error(error);
             }
         });
     })
 };
 
-export { zipFilter, cleanFolder, uploader }
+const _readFileToJson = function () {
+    var obj;
+    fs.readFile('plan_de_riego.json', 'utf8', function (err, data) {
+        if (err) throw err;
+        obj = JSON.parse(data);
+        console.log(obj[0]);
+        let api = new Api();
+        api.post('programmingirrigations')
+            .then(function (messages) {
+                console.log(messages)
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+    });
+};
+
+export {zipFilter, cleanFolder, uploader}
