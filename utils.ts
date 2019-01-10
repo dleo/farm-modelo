@@ -5,6 +5,8 @@ import * as unzip from 'unzip';
 import * as child from 'child_process';
 import * as ncp from 'ncp';
 import {Api} from "./src/classes/api";
+import {SectorService} from "./src/classes/sectors";
+import * as moment from "moment";
 
 const zipFilter = function (fileName: string) {
     // zip file only
@@ -93,16 +95,37 @@ const _readFileToJson = function () {
     var obj;
     fs.readFile('plan_de_riego.json', 'utf8', function (err, data) {
         if (err) throw err;
-        obj = JSON.parse(data);
-        console.log(obj[0]);
-        let api = new Api();
-        api.post('programmingirrigations')
-            .then(function (messages) {
-                console.log(messages)
-            })
-            .catch(function (err) {
-                console.log(err);
+        // Map sectors
+        const sectors = new SectorService(new Api());
+
+        sectors.getSectors().then(() => {
+            obj = JSON.parse(data);
+            let api = new Api();
+            obj.forEach(function (value) {
+                const sector = sectors.map(value.sector);
+                if (typeof sector == 'undefined') {
+                    console.error("Can't call service");
+                    return;
+                }
+                // TODO Calculate the endtime
+                const end = moment(value.dateTime);
+                const sectorsParam = [];
+                sectorsParam.push(sector.id);
+                let params = {
+                    'sectors': sectorsParam,
+                    'start': moment(value.dateTime).format('YYYY-MM-DD HH:mm:ss'),
+                    'end': end.add(6, 'h').format('YYYY-MM-DD HH:mm:ss')
+                };
+                api.post('programmingirrigations', params)
+                    .then(function (messages) {
+                        console.log(messages)
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
             });
+        });
+
     });
 };
 

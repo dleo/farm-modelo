@@ -3,22 +3,25 @@ import * as requestPromise from "request-promise";
 
 interface Options {
     method: string,
-    url: string,
+    url?: string,
+    uri?: string,
     headers: any,
-    formData?: any
+    formData?: any,
+    body?: any,
+    json?: boolean,
+    form?: any
 }
 
 class Api {
     URL: string;
     readonly headers: any;
-
+    //TODO Make a token for this API
     constructor() {
-        console.log('here');
         this.URL = 'http://farm-api.test/api/';
         this.headers = {
             'cache-control': 'no-cache',
             Accept: 'application/json',
-            Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImUwZWYxM2Y0YTczOWVkNGNjMmI0MTc3MDg4ZGI5ZjMzZDY0NTU0YTM4MDAyODMzNGM1ZjhlYTYyODI2MDJkZTQ5MWUwNDNjYjk3MWU4NmVmIn0.eyJhdWQiOiIxIiwianRpIjoiZTBlZjEzZjRhNzM5ZWQ0Y2MyYjQxNzcwODhkYjlmMzNkNjQ1NTRhMzgwMDI4MzM0YzVmOGVhNjI4MjYwMmRlNDkxZTA0M2NiOTcxZTg2ZWYiLCJpYXQiOjE1NDYwMzA5NTQsIm5iZiI6MTU0NjAzMDk1NCwiZXhwIjoxNTc3NTY2OTU0LCJzdWIiOiI4Iiwic2NvcGVzIjpbInN1ZWxvLWNsaW1hOnByb2dyYW1hY2lvbi1yaWVnb3M6c2F2ZSIsInN1ZWxvLWNsaW1hOnByb2dyYW1hY2lvbi1yaWVnb3MiLCJzdWVsby1jbGltYTpwcm9ncmFtYWNpb24tcmllZ29zOnVwZGF0ZSIsInN1ZWxvLWNsaW1hOnByb2dyYW1hY2lvbi1yaWVnb3M6cmVtb3ZlIl19.peo2jLL5pbL8fU5MRnXtIP28gnnhh402BzmvKB9ISkCxonyf_v3tVUNK102DN5wC2GmV0b4n-s_kx3BVO-K89AUgHhxvdK4zERphLWQAwXVaZS-fgFdEt3bGhXlLsGVuj7qvXaAYgBcE4yNhxSbo4N9QJhyt9lZFbQtCR7S1n705EPSe6WDmCUO-4rK0Lwv3FTuQwuYbDJ2kjUYp3zEtvFZVmSRXgfCh3CdthIBcyejgFbzSLP2IpmYqF3yLZqJ6E5ULngYsPcgzGdRtZVkTOVu3Nm1Qsr2X2myq7n3n_YlHX_INVl_fGMGCscscPS4wG-50LEyGLrHXG2DtVbBSxvmyhFdBesLDOKe7WIWZqWhmfouYbw5avKm8UWTRB29A62rAQ7qVcA2VA88W6Iwg1VYYRByPoUouf1cTmkFfl4XztR7NeJKNfLWQkglnVQ3_quDYzuYS8UBJ5aJPPgCAA3jvuuD4J9eHqk480Q7S-qq3fNjESxfi-m3qws9O2gM9_2I-KJaISnNtiUtsJkjLp2BXOQqyEu5frc3f-pDOGus3r1RIgP8cCqKEeC7rS2kpHqKUhsAm5-wPdzLafucy0uZlAvqL48vzVZCNR_Wvhuwmx9q_lf7TlFj9sOMgFFWoRsrMZHUn7fzUuHCgfcS3zHqOghM0oUdd-F_RDZHWdtU',
+            Authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImE3ZTI5MDdlODU1N2JjNmI4MGM5YjFlMjBlZjhmNTU5MjM5MjM2ODUwNDdkNGQwMzI1OGZjYmQ3ODNjM2MzNWQ3YjYxMjUyMzczZmQzMWEwIn0.eyJhdWQiOiIxIiwianRpIjoiYTdlMjkwN2U4NTU3YmM2YjgwYzliMWUyMGVmOGY1NTkyMzkyMzY4NTA0N2Q0ZDAzMjU4ZmNiZDc4M2MzYzM1ZDdiNjEyNTIzNzNmZDMxYTAiLCJpYXQiOjE1MzczNjc0NzUsIm5iZiI6MTUzNzM2NzQ3NSwiZXhwIjoxNTY4OTAzNDc1LCJzdWIiOiI4Iiwic2NvcGVzIjpbXX0.idEDWC74fTEb16Uq3SxYuTXiBZcyhp0tIPq_FFarQKeWCSwn1bd5mr_5uVdjUzo3rnOpnNnCiC3G8odPjTlYWNSYcyrdn79gNymZxAzdjQJ5ugd1tDAsP20dNicyrntkRsZ6PijEOdzeciNQqb6S0G-Ez2fKhytnJ6tQQAb1xVhAgh0ZI_jPqdizweBx-WeDB1N-7qE1IMkCSqxo1r00Sg1aVLYtWUMtqkHIGsTNep5dm63iJ-k7rM3oTPxe55h_371cewAqwn7u0tYaGMFbGt2VE1s42rZ928AX7cH94O57fPdnba0bcQCZkohFHN0we1b6Q4vSNNbCkyuwYSuZXavpYi5Gmnz55NOI3TW5PacbbgiAGtzfszcBkTmrr0CCCJBO3QjaX5hJXxd4KDkbge0XijiDLATzdiI2Byo3FTjeBcBy_M0aSpjHIouLlkr1eYDOKFRpHMTNjiI4B-p8NBbgl0Dq-Abk6bZ5DXJiATekGI09h1QCuh_3Dnnf0K9bcGCoCkjD-nVQ9vyYOvemdxz3pXTIuozyJM8tobH3HWLx3XmrGXLFrd3jIlF72BaeYWlGzWXUPVnKhnXdVqcC8ICy8OASMDScc3N5Hl3RBK8Gb3RrS-_VQGVOS0kA0xOi75e1w9Usb3j0eAK4mKjBGaa0kGMun0Tg_PIWUsyUwKk',
             'content-type': 'multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW'
         };
     }
@@ -26,7 +29,18 @@ class Api {
     post(append: string, params?: any) {
         const options: Options = {
             method: 'POST',
-            url: this.URL,
+            uri: this.URL + append,
+            headers: this.headers,
+            form: params
+        };
+        return requestPromise(options);
+    }
+
+    // Build get verb
+    get(append: string, params?: any) {
+        const options: Options = {
+            method: 'GET',
+            url: this.URL + append,
             headers: this.headers,
             formData: params
         };
